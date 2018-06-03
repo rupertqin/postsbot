@@ -1,0 +1,19 @@
+{
+  "name": "postsbot",
+  "version": "0.0.1",
+  "description": "A robot help me to top posts that in social medias",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "top",
+    "post",
+    "robot"
+  ],
+  "author": "qx",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^1.4.0"
+  }
+}
