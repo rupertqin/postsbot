@@ -14,6 +14,6 @@
   "author": "qx",
   "license": "MIT",
   "dependencies": {
-    "puppeteer": "^1.4.0"
+    "puppeteer": "^1.5.0"
   }
 }
