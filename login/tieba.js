@@ -21,8 +21,8 @@ function readCaptcha() {
 
 ;(async () => {
   const browser = await puppeteer.launch({
-     headless: false,
-     args: ['--no-sandbox', '--disable-setuid-sandbox']
+     // headless: false,
+     // args: ['--no-sandbox', '--disable-setuid-sandbox']
   })
   let page = await browser.newPage()
   page.setDefaultNavigationTimeout(15 * 1000)
@@ -46,14 +46,14 @@ function readCaptcha() {
   await page.waitForNavigation()
 
 
-  await page.goto('http://tieba.baidu.com/i/i/my_tie')
+  await page.goto('http://tieba.baidu.com/i/i/my_tie?&pn=1')
   let links = await page.evaluate(() => {
     const anchors = Array.from(document.querySelectorAll('.simple_block_container ul li .wrap a.thread_title'))
     return anchors.map(anchor => anchor.href)
   })
   console.log(links)
 
-  links = links.slice(5,10)
+  // links.splice(0, 15)
   for (const link of links) {
     console.log(link)
     await timeout(5000)
