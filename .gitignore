@@ -5,6 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 config/config.default.js
+screenshot
 
 # Runtime data
 pids

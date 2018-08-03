@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer')
 const readline = require('readline');
 const config = require('../config/config.default')
-let { auth: tiebaAuth, posts, page: pageNum, headless } = config.tieba
+let { auth: tiebaAuth, posts, page: pageNum, headless, screenshot_path, login_by_qr } = config.tieba
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -32,36 +32,43 @@ const msgList = [
   const ssss = await page.evaluate(() => document.querySelector('.notessss') )
   console.log(ssss)
   await page.click('.u_login')
-  await timeout(3000)
-  await page.click('.tang-pass-footerBarULogin')
-  console.log('after click to form')
 
-  // fill form
-  await page.type('#TANGRAM__PSP_10__userName', tiebaAuth.user)
-  await page.type('#TANGRAM__PSP_10__password', tiebaAuth.password)
-  await page.screenshot({ path: 'tieba-login.png', fullPage: true })
-  await page.click('.pass-button-submit')
-  console.log('after click submit')
-  await page.waitForNavigation()
-  if (!headless) {
-  }
+  if (login_by_qr) {
+    await timeout(3000)
+    await page.screenshot({ path: screenshot_path })
+    await timeout(30*1000)
+  } else {
+    await timeout(3000)
+    await page.click('.tang-pass-footerBarULogin')
+    console.log('after click to form')
 
-  // get captcha
-  await timeout(2000)
-  console.log('before evaluate')
-  const securityBox = await page.evaluate(() => document.querySelector('.pass-forceverify-wrapper') )
-  console.log(`securityBox: ${securityBox}`)
-  if (securityBox) {
-    console.log(await page.evaluate(() => document.querySelectorAll('.pass-forceverify-wrapper').innerText ))
-    await page.waitForSelector('#TANGRAM__25__content_send_mobile')
-    await page.click('#TANGRAM__25__content_send_mobile')
-    const captchaCode = await readCaptcha()
-    console.log('captcha is : ', captchaCode)
-    await page.type('.forceverify-input', captchaCode)
-    await page.click('#TANGRAM__25__content_submit')
+    // fill form
+    await page.type('#TANGRAM__PSP_10__userName', tiebaAuth.user)
+    await page.type('#TANGRAM__PSP_10__password', tiebaAuth.password)
+    await page.screenshot({ path: screenshot_path })
+    await page.click('.pass-button-submit')
+    console.log('after click submit')
     await page.waitForNavigation()
-  }
+    if (!headless) {
+    }
 
+    // get captcha
+    await timeout(2000)
+    console.log('before evaluate')
+    const securityBox = await page.evaluate(() => document.querySelector('.pass-forceverify-wrapper') )
+    console.log(`securityBox: ${securityBox}`)
+    if (securityBox) {
+      console.log(await page.evaluate(() => document.querySelectorAll('.pass-forceverify-wrapper').innerText ))
+      await page.waitForSelector('#TANGRAM__25__content_send_mobile')
+      await page.click('#TANGRAM__25__content_send_mobile')
+      const captchaCode = await readCaptcha()
+      console.log('captcha is : ', captchaCode)
+      await page.type('.forceverify-input', captchaCode)
+      await page.click('#TANGRAM__25__content_submit')
+      await page.waitForNavigation()
+    }
+
+  }
 
   if (!(posts && posts.length)) {
     await page.goto(`http://tieba.baidu.com/i/i/my_tie?&pn=${pageNum}`)
