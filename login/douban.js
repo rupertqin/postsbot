@@ -3,12 +3,14 @@
 const puppeteer = require('puppeteer')
 const readline = require('readline');
 const config = require('../config/config.default')
-const { auth: doubanAuth, posts } = config.douban
+const { auth: doubanAuth, postIds, postPreUrl, REPLIES } = config.douban
+
 
 ;(async () => {
   const browser = await puppeteer.launch({
     headless: false,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath: config.executablePath,
   })
   let page = await browser.newPage()
   page.setDefaultNavigationTimeout(15*1000)
@@ -16,11 +18,10 @@ const { auth: doubanAuth, posts } = config.douban
   await page.setViewport({ width: 1280, height: 800 })
   await page.goto('https://accounts.douban.com')
 
-  
-  // // fill form
+  // fill form
   await page.type('#email', doubanAuth.email)
   await page.type('#password', doubanAuth.password)
-  
+
   // get captcha
   const captcha = await page.evaluate(() => document.querySelectorAll('.item-captcha') )
   if (Object.keys(captcha).length) {
@@ -32,10 +33,12 @@ const { auth: doubanAuth, posts } = config.douban
 
   await page.click('.btn-submit')
 
-  if (posts.length) {
-    for (const post of posts) {
+  if (postIds.length) {
+    for (const postId of postIds) {
       await timeout(3000)
-      await reply_post(page, post)
+      const url = `${postPreUrl}/${postId}`
+      await del_my_garbage(page, url)
+      // await reply_post(page, url)
     }
   }
 
@@ -49,9 +52,35 @@ function timeout(ms) {
   });
 }
 
+async function del_my_garbage(page, link) {
+  await page.goto(link)
+  let $comments = await page.$$('.comment-item')
+  page.on('dialog', async dialog => {
+    await dialog.accept();
+  })
+  for (const $comment of $comments) {
+    const text = await $comment.$eval('.operation_div', n => {
+      return n.previousElementSibling.textContent
+    })
+    console.log('text:', text)
+    if (!REPLIES.includes(text)) {
+      // last one
+      if ($comments.indexOf($comment) === $comments.length) {
+        return false
+      }
+      continue;
+    }
+    const $del = await $comment.$('.lnk-delete-comment')
+    await $comment.hover()
+    await $del.click()
+    await timeout(2000)
+    return del_my_garbage(page, link)
+  }
+}
+
 async function reply_post(page, link) {
   await page.goto(link)
-  await page.screenshot({ path: 'douban-login.png', fullPage: true })
+  await del_my_garbage(page)
   await page.type('#last', 'UP')
   await page.click('.js-verify-account input')
   await page.waitForNavigation()

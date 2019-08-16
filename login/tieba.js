@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer')
 const readline = require('readline');
 const config = require('../config/config.default')
-let { auth: tiebaAuth, posts, page: pageNum, headless, screenshot_path, login_by_qr } = config.tieba
+let { auth: tiebaAuth, posts, page: pageNum, headless, screenshot_path, login_by_qr, interval } = config.tieba
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -36,7 +36,9 @@ const msgList = [
   if (login_by_qr) {
     await timeout(3000)
     await page.screenshot({ path: screenshot_path })
-    await timeout(30*1000)
+    console.log(`qr is saved in : ${screenshot_path}`)
+    await timeout(60*1000)
+    console.log('60s is passed!')
   } else {
     await timeout(3000)
     await page.click('.tang-pass-footerBarULogin')
@@ -81,9 +83,12 @@ const msgList = [
 
   for (const p of posts) {
     await reply_post(page, p)
-    console.log(p)
-    await timeout(2*60*1000)
+    console.log(`the page ${p} is post!`)
+    if (posts.indexOf(p) !== (posts.length - 1)) {
+      await timeout(interval)
+    }
   }
+  console.log('all posts are done!')
 
   // browser.close()
   // process.exit(0)
